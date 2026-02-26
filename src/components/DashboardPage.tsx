@@ -81,7 +81,7 @@ const DashboardPage = () => {
           <div className="overflow-hidden">
             <div className="animate-marquee whitespace-nowrap">
               <span className="text-sm font-semibold text-primary-foreground">
-                🎉 Yuk, pakai Livin' by Mandiri! Download di sini 👉 bmri.id/reflivin • Kode referral: MGM7MLZ6LS • FAQ: bmri.id/livinmgm • Daftar Mandiri Agen: bmri.id/join-mandiriagen • Layanan setor, tarik tunai, transfer & pembayaran tagihan! • Bank Mandiri berizin & diawasi OJK dan Bank Indonesia 🏦
+                🎉 Yuk, pakai Livin' by Mandiri! Download di sini 👉 bmri.id/reflivin • Kode referral: MGM7MLZ6LS • FAQ: bmri.id/livinmgm • Daftar Mandiri Agen: bmri.id/join-mandiriagen • 🎁 Program Welcome Gift Mandiri Agen 👉 bankmandiri.co.id/program-welcome-gift-mandiri-agen • Layanan setor, tarik tunai, transfer & pembayaran tagihan! • Bank Mandiri berizin & diawasi OJK dan Bank Indonesia 🏦
               </span>
             </div>
           </div>
