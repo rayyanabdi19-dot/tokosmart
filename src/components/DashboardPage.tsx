@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '@/context/AppContext';
-import { Plus, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Clock, CreditCard } from 'lucide-react';
+import { Plus, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Clock, CreditCard, Megaphone, ExternalLink } from 'lucide-react';
 
 const DashboardPage = () => {
   const { shift, setShowTransactionModal, setShowTopupModal, setSelectedTransaction, setShowReceiptModal, user } = useApp();
@@ -63,6 +63,29 @@ const DashboardPage = () => {
             <p className="text-sm font-bold text-foreground">Rp {totalTopups.toLocaleString('id-ID')}</p>
           </div>
         </div>
+      </div>
+
+      {/* Promo Banner */}
+      <div className="px-6 mt-5">
+        <a
+          href="https://bmri.id/reflivin?af_adset=MGM7MLZ6LS&deep_link_sub1=null&deep_link_sub2=MGM7MLZ6LS"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block bg-gradient-to-r from-primary to-accent rounded-2xl p-4 border border-primary/20 overflow-hidden relative"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <Megaphone className="w-4 h-4 text-primary-foreground" />
+            <span className="text-xs font-bold text-primary-foreground uppercase tracking-wide">Promo</span>
+            <ExternalLink className="w-3 h-3 text-primary-foreground/70 ml-auto" />
+          </div>
+          <div className="overflow-hidden">
+            <div className="animate-marquee whitespace-nowrap">
+              <span className="text-sm font-semibold text-primary-foreground">
+                🎉 Yuk, pakai Livin' by Mandiri! Download di sini 👉 bmri.id/reflivin • Kode referral: MGM7MLZ6LS • FAQ: bmri.id/livinmgm • Daftar Mandiri Agen: bmri.id/join-mandiriagen • Layanan setor, tarik tunai, transfer & pembayaran tagihan! • Bank Mandiri berizin & diawasi OJK dan Bank Indonesia 🏦
+              </span>
+            </div>
+          </div>
+        </a>
       </div>
 
       {/* Quick Actions */}
