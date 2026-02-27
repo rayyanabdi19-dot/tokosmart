@@ -1,11 +1,11 @@
 import React from 'react';
 import { useApp } from '@/context/AppContext';
-import { BarChart3, TrendingUp, ShoppingCart, CreditCard } from 'lucide-react';
+import { BarChart3, TrendingUp, ShoppingCart, CreditCard, FileSpreadsheet } from 'lucide-react';
 
 const ReportPage = () => {
-  const { shift } = useApp();
+  const { shift, setCurrentPage } = useApp();
 
-  const sales = shift.transactions.filter(t => t.type === 'sale');
+  const sales = shift.transactions.filter(t => t.type === 'sale' || t.type === 'pos-sale');
   const totalSales = sales.reduce((s, t) => s + t.amount, 0);
   const avgSale = sales.length > 0 ? Math.round(totalSales / sales.length) : 0;
 
@@ -17,7 +17,12 @@ const ReportPage = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       <div className="px-6 pt-12">
-        <h1 className="text-xl font-bold text-foreground mb-1">Reports</h1>
+        <div className="flex items-center justify-between mb-1">
+          <h1 className="text-xl font-bold text-foreground">Reports</h1>
+          <button onClick={() => setCurrentPage('sales-report')} className="flex items-center gap-1.5 bg-success text-success-foreground px-3 py-2 rounded-xl text-xs font-medium">
+            <FileSpreadsheet className="w-4 h-4" /> Laporan Laba
+          </button>
+        </div>
         <p className="text-sm text-muted-foreground mb-6">Shift summary & analytics</p>
 
         <div className="grid grid-cols-2 gap-3 mb-6">

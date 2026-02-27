@@ -1,15 +1,31 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-export type Page = 'open-store' | 'dashboard' | 'cashbook' | 'report' | 'account' | 'admin-settings' | 'faq';
+export type Page = 'open-store' | 'dashboard' | 'cashbook' | 'report' | 'account' | 'admin-settings' | 'faq' | 'pos' | 'staff-management' | 'printer-settings' | 'notification-settings' | 'data-backup' | 'product-management' | 'sales-report';
+
+export interface Product {
+  id: string;
+  name: string;
+  price: number;
+  cost: number;
+  category: string;
+  image: string;
+  stock: number;
+}
+
+export interface CartItem {
+  product: Product;
+  qty: number;
+}
 
 export interface Transaction {
   id: string;
-  type: 'sale' | 'expense' | 'topup';
+  type: 'sale' | 'expense' | 'topup' | 'pos-sale';
   amount: number;
   description: string;
   category: string;
   timestamp: Date;
   paymentMethod: 'cash' | 'card' | 'e-wallet';
+  items?: CartItem[];
 }
 
 export interface User {
@@ -55,7 +71,33 @@ interface AppContextType {
   notifications: Notification[];
   addNotification: (message: string, type: Notification['type']) => void;
   removeNotification: (id: string) => void;
+  products: Product[];
+  setProducts: (p: Product[]) => void;
+  addProduct: (p: Omit<Product, 'id'>) => void;
+  updateProduct: (p: Product) => void;
+  deleteProduct: (id: string) => void;
+  cart: CartItem[];
+  setCart: (c: CartItem[]) => void;
+  addToCart: (product: Product) => void;
+  removeFromCart: (productId: string) => void;
+  updateCartQty: (productId: string, qty: number) => void;
+  clearCart: () => void;
 }
+
+const defaultProducts: Product[] = [
+  { id: '1', name: 'Pulsa 10K', price: 12000, cost: 10000, category: 'Pulsa', image: '📱', stock: 99 },
+  { id: '2', name: 'Pulsa 25K', price: 27000, cost: 25000, category: 'Pulsa', image: '📱', stock: 99 },
+  { id: '3', name: 'Pulsa 50K', price: 52000, cost: 50000, category: 'Pulsa', image: '📱', stock: 99 },
+  { id: '4', name: 'Paket Data 5GB', price: 45000, cost: 40000, category: 'Paket Data', image: '📶', stock: 99 },
+  { id: '5', name: 'Token Listrik 50K', price: 52000, cost: 50000, category: 'Token', image: '⚡', stock: 99 },
+  { id: '6', name: 'Token Listrik 100K', price: 102000, cost: 100000, category: 'Token', image: '⚡', stock: 99 },
+  { id: '7', name: 'Buku Tulis', price: 5000, cost: 3500, category: 'ATK', image: '📒', stock: 50 },
+  { id: '8', name: 'Pulpen', price: 3000, cost: 1500, category: 'ATK', image: '🖊️', stock: 100 },
+  { id: '9', name: 'Pensil 2B', price: 2000, cost: 1000, category: 'ATK', image: '✏️', stock: 80 },
+  { id: '10', name: 'Penghapus', price: 2000, cost: 800, category: 'ATK', image: '🧹', stock: 60 },
+  { id: '11', name: 'E-Wallet TopUp', price: 10000, cost: 10000, category: 'E-Wallet', image: '💳', stock: 99 },
+  { id: '12', name: 'Voucher Game 25K', price: 27000, cost: 25000, category: 'Voucher', image: '🎮', stock: 99 },
+];
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -74,6 +116,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [showCloseShiftModal, setShowCloseShiftModal] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [products, setProducts] = useState<Product[]>(defaultProducts);
+  const [cart, setCart] = useState<CartItem[]>([]);
 
   const openShift = (balance: number) => {
     setShift({ isOpen: true, openedAt: new Date(), openingBalance: balance, transactions: [] });
@@ -90,7 +134,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const addTransaction = (tx: Omit<Transaction, 'id' | 'timestamp'>) => {
     const newTx: Transaction = { ...tx, id: Date.now().toString(), timestamp: new Date() };
     setShift(prev => ({ ...prev, transactions: [newTx, ...prev.transactions] }));
-    addNotification(`${tx.type === 'sale' ? 'Sale' : tx.type === 'topup' ? 'Top-up' : 'Expense'} of Rp ${tx.amount.toLocaleString()} recorded`, 'success');
+    addNotification(`${tx.type === 'sale' ? 'Sale' : tx.type === 'topup' ? 'Top-up' : tx.type === 'pos-sale' ? 'POS Sale' : 'Expense'} of Rp ${tx.amount.toLocaleString()} recorded`, 'success');
   };
 
   const addNotification = (message: string, type: Notification['type']) => {
@@ -103,6 +147,40 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
+  const addProduct = (p: Omit<Product, 'id'>) => {
+    setProducts(prev => [...prev, { ...p, id: Date.now().toString() }]);
+    addNotification('Product added!', 'success');
+  };
+
+  const updateProduct = (p: Product) => {
+    setProducts(prev => prev.map(pr => pr.id === p.id ? p : pr));
+    addNotification('Product updated!', 'success');
+  };
+
+  const deleteProduct = (id: string) => {
+    setProducts(prev => prev.filter(p => p.id !== id));
+    addNotification('Product deleted!', 'info');
+  };
+
+  const addToCart = (product: Product) => {
+    setCart(prev => {
+      const existing = prev.find(c => c.product.id === product.id);
+      if (existing) return prev.map(c => c.product.id === product.id ? { ...c, qty: c.qty + 1 } : c);
+      return [...prev, { product, qty: 1 }];
+    });
+  };
+
+  const removeFromCart = (productId: string) => {
+    setCart(prev => prev.filter(c => c.product.id !== productId));
+  };
+
+  const updateCartQty = (productId: string, qty: number) => {
+    if (qty <= 0) { removeFromCart(productId); return; }
+    setCart(prev => prev.map(c => c.product.id === productId ? { ...c, qty } : c));
+  };
+
+  const clearCart = () => setCart([]);
+
   return (
     <AppContext.Provider value={{
       user, setUser, currentPage, setCurrentPage,
@@ -113,6 +191,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       selectedTransaction, setSelectedTransaction,
       showCloseShiftModal, setShowCloseShiftModal,
       notifications, addNotification, removeNotification,
+      products, setProducts, addProduct, updateProduct, deleteProduct,
+      cart, setCart, addToCart, removeFromCart, updateCartQty, clearCart,
     }}>
       {children}
     </AppContext.Provider>

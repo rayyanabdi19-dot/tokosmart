@@ -1,9 +1,10 @@
 import React from 'react';
 import { useApp, Page } from '@/context/AppContext';
-import { LayoutDashboard, BookOpen, BarChart3, User, XCircle } from 'lucide-react';
+import { LayoutDashboard, BookOpen, BarChart3, User, XCircle, ShoppingBag } from 'lucide-react';
 
 const tabs: { page: Page; icon: typeof LayoutDashboard; label: string }[] = [
   { page: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { page: 'pos', icon: ShoppingBag, label: 'Kasir' },
   { page: 'cashbook', icon: BookOpen, label: 'Cashbook' },
   { page: 'report', icon: BarChart3, label: 'Reports' },
   { page: 'account', icon: User, label: 'Account' },
@@ -21,7 +22,7 @@ const BottomNav = () => {
             <button
               key={tab.page}
               onClick={() => setCurrentPage(tab.page)}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors ${
+              className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-colors ${
                 active ? 'text-primary' : 'text-muted-foreground'
               }`}
             >
@@ -32,7 +33,7 @@ const BottomNav = () => {
         })}
         <button
           onClick={() => setShowCloseShiftModal(true)}
-          className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl text-destructive transition-colors"
+          className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-destructive transition-colors"
         >
           <XCircle className="w-5 h-5" />
           <span className="text-[10px] font-medium">Close</span>
