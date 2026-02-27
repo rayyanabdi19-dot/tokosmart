@@ -1,11 +1,11 @@
 import React from 'react';
 import { useApp } from '@/context/AppContext';
-import { Plus, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Clock, CreditCard, Megaphone, ExternalLink } from 'lucide-react';
+import { Plus, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Clock, CreditCard, Megaphone, ExternalLink, ShoppingBag } from 'lucide-react';
 
 const DashboardPage = () => {
-  const { shift, setShowTransactionModal, setShowTopupModal, setSelectedTransaction, setShowReceiptModal, user } = useApp();
+  const { shift, setShowTransactionModal, setShowTopupModal, setSelectedTransaction, setShowReceiptModal, setCurrentPage, user } = useApp();
 
-  const totalSales = shift.transactions.filter(t => t.type === 'sale').reduce((s, t) => s + t.amount, 0);
+  const totalSales = shift.transactions.filter(t => t.type === 'sale' || t.type === 'pos-sale').reduce((s, t) => s + t.amount, 0);
   const totalExpenses = shift.transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
   const totalTopups = shift.transactions.filter(t => t.type === 'topup').reduce((s, t) => s + t.amount, 0);
   const currentBalance = shift.openingBalance + totalSales + totalTopups - totalExpenses;
@@ -91,24 +91,24 @@ const DashboardPage = () => {
       {/* Quick Actions */}
       <div className="px-6 mt-6">
         <h2 className="text-sm font-semibold text-foreground mb-3">Quick Actions</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <button onClick={() => setShowTransactionModal(true)} className="flex items-center gap-3 bg-card rounded-2xl p-4 border border-border hover:border-primary/30 transition-colors">
+        <div className="grid grid-cols-3 gap-3">
+          <button onClick={() => setCurrentPage('pos')} className="flex flex-col items-center gap-2 bg-card rounded-2xl p-4 border border-border hover:border-primary/30 transition-colors">
             <div className="w-10 h-10 rounded-xl pos-gradient flex items-center justify-center">
-              <Plus className="w-5 h-5 text-primary-foreground" />
+              <ShoppingBag className="w-5 h-5 text-primary-foreground" />
             </div>
-            <div className="text-left">
-              <p className="text-sm font-semibold text-foreground">New Sale</p>
-              <p className="text-xs text-muted-foreground">Record transaction</p>
-            </div>
+            <p className="text-xs font-semibold text-foreground">Kasir Toko</p>
           </button>
-          <button onClick={() => setShowTopupModal(true)} className="flex items-center gap-3 bg-card rounded-2xl p-4 border border-border hover:border-primary/30 transition-colors">
+          <button onClick={() => setShowTransactionModal(true)} className="flex flex-col items-center gap-2 bg-card rounded-2xl p-4 border border-border hover:border-primary/30 transition-colors">
+            <div className="w-10 h-10 rounded-xl bg-success flex items-center justify-center">
+              <Plus className="w-5 h-5 text-success-foreground" />
+            </div>
+            <p className="text-xs font-semibold text-foreground">New Sale</p>
+          </button>
+          <button onClick={() => setShowTopupModal(true)} className="flex flex-col items-center gap-2 bg-card rounded-2xl p-4 border border-border hover:border-primary/30 transition-colors">
             <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
               <CreditCard className="w-5 h-5 text-accent-foreground" />
             </div>
-            <div className="text-left">
-              <p className="text-sm font-semibold text-foreground">Top-up</p>
-              <p className="text-xs text-muted-foreground">Add cash balance</p>
-            </div>
+            <p className="text-xs font-semibold text-foreground">Top-up</p>
           </button>
         </div>
       </div>
@@ -127,14 +127,14 @@ const DashboardPage = () => {
             {shift.transactions.slice(0, 10).map(tx => (
               <button key={tx.id} onClick={() => viewReceipt(tx)} className="w-full flex items-center gap-3 bg-card rounded-xl p-3.5 border border-border hover:border-primary/20 transition-colors">
                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                  tx.type === 'sale' ? 'bg-success/10' : tx.type === 'topup' ? 'bg-accent/10' : 'bg-destructive/10'
+                  tx.type === 'sale' || tx.type === 'pos-sale' ? 'bg-success/10' : tx.type === 'topup' ? 'bg-accent/10' : 'bg-destructive/10'
                 }`}>
-                  {tx.type === 'sale' ? <ArrowDownLeft className="w-4 h-4 text-success" /> :
+                  {tx.type === 'sale' || tx.type === 'pos-sale' ? <ArrowDownLeft className="w-4 h-4 text-success" /> :
                    tx.type === 'topup' ? <Wallet className="w-4 h-4 text-accent" /> :
                    <ArrowUpRight className="w-4 h-4 text-destructive" />}
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="text-sm font-medium text-foreground">{tx.description}</p>
+                  <p className="text-sm font-medium text-foreground truncate">{tx.description}</p>
                   <p className="text-xs text-muted-foreground">{new Date(tx.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</p>
                 </div>
                 <p className={`text-sm font-semibold ${tx.type === 'expense' ? 'text-destructive' : 'text-success'}`}>
