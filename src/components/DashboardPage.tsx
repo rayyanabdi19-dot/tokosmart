@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '@/context/AppContext';
-import { Plus, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Clock, CreditCard, Megaphone, ExternalLink, ShoppingBag } from 'lucide-react';
+import { Plus, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Clock, CreditCard, Megaphone, ExternalLink, ShoppingBag, Store } from 'lucide-react';
 
 const DashboardPage = () => {
   const { shift, setShowTransactionModal, setShowTopupModal, setSelectedTransaction, setShowReceiptModal, setCurrentPage, user } = useApp();
@@ -17,12 +17,17 @@ const DashboardPage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
+      {/* Header with Store Info */}
       <div className="pos-gradient px-6 pt-12 pb-8 rounded-b-3xl">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <p className="text-primary-foreground/70 text-sm">Welcome back,</p>
-            <h1 className="text-primary-foreground text-lg font-bold">{user?.name}</h1>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary-foreground/20 flex items-center justify-center">
+              <Store className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-primary-foreground text-lg font-bold">{user?.storeName || 'Toko Saya'}</h1>
+              {user?.storeAddress && <p className="text-primary-foreground/60 text-[10px]">{user.storeAddress}</p>}
+            </div>
           </div>
           <div className="flex items-center gap-1.5 bg-primary-foreground/20 rounded-full px-3 py-1.5">
             <Clock className="w-3.5 h-3.5 text-primary-foreground" />
@@ -31,6 +36,7 @@ const DashboardPage = () => {
             </span>
           </div>
         </div>
+        <p className="text-primary-foreground/70 text-xs mb-4 ml-[52px]">Welcome, {user?.name}</p>
 
         <div className="bg-primary-foreground/10 rounded-2xl p-5 backdrop-blur-sm">
           <p className="text-primary-foreground/70 text-xs mb-1">Current Balance</p>
@@ -67,12 +73,8 @@ const DashboardPage = () => {
 
       {/* Promo Banner */}
       <div className="px-6 mt-5">
-        <a
-          href="https://bmri.id/reflivin?af_adset=MGM7MLZ6LS&deep_link_sub1=null&deep_link_sub2=MGM7MLZ6LS"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block bg-gradient-to-r from-primary to-accent rounded-2xl p-4 border border-primary/20 overflow-hidden relative"
-        >
+        <a href="https://bmri.id/reflivin?af_adset=MGM7MLZ6LS&deep_link_sub1=null&deep_link_sub2=MGM7MLZ6LS" target="_blank" rel="noopener noreferrer"
+          className="block bg-gradient-to-r from-primary to-accent rounded-2xl p-4 border border-primary/20 overflow-hidden relative">
           <div className="flex items-center gap-2 mb-2">
             <Megaphone className="w-4 h-4 text-primary-foreground" />
             <span className="text-xs font-bold text-primary-foreground uppercase tracking-wide">Promo</span>
