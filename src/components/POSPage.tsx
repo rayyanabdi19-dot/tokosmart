@@ -1,17 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useApp, Product, CartItem } from '@/context/AppContext';
-import { ArrowLeft, Search, ShoppingCart, Plus, Minus, Trash2, CreditCard, Banknote, Smartphone, X, Printer, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Search, ShoppingCart, Plus, Minus, Trash2, CreditCard, Banknote, Smartphone, X, Printer, MessageCircle, ScanLine } from 'lucide-react';
+import BarcodeScanner from './BarcodeScanner';
 
 const categories = ['All', 'Pulsa', 'Paket Data', 'Token', 'ATK', 'E-Wallet', 'Voucher'];
 
 const POSPage = () => {
-  const { setCurrentPage, products, cart, addToCart, removeFromCart, updateCartQty, clearCart, addTransaction, setSelectedTransaction, setShowReceiptModal, user } = useApp();
+  const { setCurrentPage, products, cart, addToCart, removeFromCart, updateCartQty, clearCart, addTransaction, user } = useApp();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [showCheckout, setShowCheckout] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'e-wallet'>('cash');
+  const [cashReceived, setCashReceived] = useState('');
   const [showPosReceipt, setShowPosReceipt] = useState(false);
-  const [lastTransaction, setLastTransaction] = useState<{ items: CartItem[]; total: number; payment: string; id: string; date: Date } | null>(null);
+  const [showScanner, setShowScanner] = useState(false);
+  const [lastTransaction, setLastTransaction] = useState<{ items: CartItem[]; total: number; payment: string; id: string; date: Date; cashReceived: number; change: number } | null>(null);
 
   const filtered = products.filter(p => {
     const matchCat = activeCategory === 'All' || p.category === activeCategory;
@@ -21,9 +24,23 @@ const POSPage = () => {
 
   const cartTotal = cart.reduce((s, c) => s + c.product.price * c.qty, 0);
   const cartCount = cart.reduce((s, c) => s + c.qty, 0);
+  const cashReceivedNum = parseFloat(cashReceived) || 0;
+  const changeAmount = paymentMethod === 'cash' ? Math.max(0, cashReceivedNum - cartTotal) : 0;
+
+  const handleBarcodeScan = useCallback((code: string) => {
+    setShowScanner(false);
+    const product = products.find(p => p.barcode === code || p.id === code || p.name.toLowerCase().includes(code.toLowerCase()));
+    if (product) {
+      addToCart(product);
+    } else {
+      setSearch(code);
+    }
+  }, [products, addToCart]);
 
   const handleCheckout = () => {
     if (cart.length === 0) return;
+    if (paymentMethod === 'cash' && cashReceivedNum < cartTotal) return;
+
     const txData = {
       type: 'pos-sale' as const,
       amount: cartTotal,
@@ -31,45 +48,64 @@ const POSPage = () => {
       category: 'POS Sale',
       paymentMethod,
       items: [...cart],
+      cashReceived: paymentMethod === 'cash' ? cashReceivedNum : undefined,
+      changeAmount: paymentMethod === 'cash' ? changeAmount : undefined,
     };
     addTransaction(txData);
-    setLastTransaction({ items: [...cart], total: cartTotal, payment: paymentMethod, id: Date.now().toString(), date: new Date() });
+    setLastTransaction({
+      items: [...cart], total: cartTotal, payment: paymentMethod,
+      id: Date.now().toString(), date: new Date(),
+      cashReceived: cashReceivedNum, change: changeAmount,
+    });
     clearCart();
+    setCashReceived('');
     setShowCheckout(false);
     setShowPosReceipt(true);
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = () => window.print();
 
   const handleWhatsApp = () => {
     if (!lastTransaction) return;
     const lines = [
       `🧾 *STRUK PEMBAYARAN*`,
       `📍 ${user?.storeName}`,
+      user?.storeAddress ? `📫 ${user.storeAddress}` : '',
+      user?.storePhone ? `📞 ${user.storePhone}` : '',
       `📅 ${lastTransaction.date.toLocaleString('id-ID')}`,
       `━━━━━━━━━━━━━━━━━━`,
       ...lastTransaction.items.map(i => `${i.product.name} x${i.qty} = Rp ${(i.product.price * i.qty).toLocaleString('id-ID')}`),
       `━━━━━━━━━━━━━━━━━━`,
       `*TOTAL: Rp ${lastTransaction.total.toLocaleString('id-ID')}*`,
       `💳 Bayar: ${lastTransaction.payment}`,
+      ...(lastTransaction.payment === 'cash' ? [
+        `💵 Tunai: Rp ${lastTransaction.cashReceived.toLocaleString('id-ID')}`,
+        `💰 Kembalian: Rp ${lastTransaction.change.toLocaleString('id-ID')}`,
+      ] : []),
       ``,
       `Terima kasih! 🙏`,
-    ];
+    ].filter(Boolean);
     const text = encodeURIComponent(lines.join('\n'));
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
+  const quickCash = [cartTotal, Math.ceil(cartTotal / 10000) * 10000, Math.ceil(cartTotal / 50000) * 50000, 100000].filter((v, i, a) => a.indexOf(v) === i && v >= cartTotal);
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
+      {/* Header with Store Info */}
       <div className="px-4 pt-10 pb-3 bg-card border-b border-border">
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-3 mb-1">
           <button onClick={() => setCurrentPage('dashboard')} className="text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-lg font-bold text-foreground flex-1">Kasir Toko</h1>
+          <div className="flex-1">
+            <h1 className="text-lg font-bold text-foreground">{user?.storeName || 'Kasir Toko'}</h1>
+            {user?.storeAddress && <p className="text-[10px] text-muted-foreground">{user.storeAddress}</p>}
+          </div>
+          <button onClick={() => setShowScanner(true)} className="p-2 bg-accent rounded-xl text-accent-foreground">
+            <ScanLine className="w-5 h-5" />
+          </button>
           <button onClick={() => setShowCheckout(true)} className="relative p-2 bg-primary rounded-xl text-primary-foreground">
             <ShoppingCart className="w-5 h-5" />
             {cartCount > 0 && (
@@ -78,9 +114,9 @@ const POSPage = () => {
           </button>
         </div>
         {/* Search */}
-        <div className="relative mb-3">
+        <div className="relative mb-3 mt-2">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari produk..." className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari produk atau scan barcode..." className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
         </div>
         {/* Category tabs */}
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
@@ -129,7 +165,7 @@ const POSPage = () => {
       {/* Checkout Modal */}
       {showCheckout && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40" onClick={() => setShowCheckout(false)}>
-          <div className="bg-card w-full max-w-lg rounded-t-3xl max-h-[85vh] flex flex-col animate-in slide-in-from-bottom" onClick={e => e.stopPropagation()}>
+          <div className="bg-card w-full max-w-lg rounded-t-3xl max-h-[90vh] flex flex-col animate-in slide-in-from-bottom" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 border-b border-border">
               <h2 className="text-lg font-bold text-foreground">Checkout</h2>
               <button onClick={() => setShowCheckout(false)} className="text-muted-foreground"><X className="w-5 h-5" /></button>
@@ -151,7 +187,6 @@ const POSPage = () => {
                   </div>
                 </div>
               ))}
-
               {cart.length === 0 && (
                 <div className="text-center py-10">
                   <ShoppingCart className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
@@ -176,11 +211,50 @@ const POSPage = () => {
                     ))}
                   </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Total</span>
-                  <span className="text-xl font-bold text-foreground">Rp {cartTotal.toLocaleString('id-ID')}</span>
+
+                {/* Cash received input */}
+                {paymentMethod === 'cash' && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Uang Diterima</p>
+                    <input
+                      type="number" value={cashReceived} onChange={e => setCashReceived(e.target.value)}
+                      placeholder={`Min. Rp ${cartTotal.toLocaleString('id-ID')}`}
+                      className="w-full py-2.5 px-3 rounded-xl border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    />
+                    <div className="flex gap-2 mt-2">
+                      {quickCash.slice(0, 4).map(v => (
+                        <button key={v} onClick={() => setCashReceived(v.toString())}
+                          className="flex-1 py-1.5 rounded-lg bg-muted text-muted-foreground text-[10px] font-medium hover:bg-primary/10 transition-colors">
+                          Rp {v.toLocaleString('id-ID')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Total</span>
+                    <span className="text-xl font-bold text-foreground">Rp {cartTotal.toLocaleString('id-ID')}</span>
+                  </div>
+                  {paymentMethod === 'cash' && cashReceivedNum > 0 && (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">Tunai</span>
+                        <span className="text-sm font-medium text-foreground">Rp {cashReceivedNum.toLocaleString('id-ID')}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-semibold text-success">Kembalian</span>
+                        <span className="text-lg font-bold text-success">Rp {changeAmount.toLocaleString('id-ID')}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
-                <button onClick={handleCheckout} className="w-full pos-gradient text-primary-foreground rounded-xl py-3.5 font-semibold shadow-lg">
+
+                <button
+                  onClick={handleCheckout}
+                  disabled={paymentMethod === 'cash' && cashReceivedNum < cartTotal}
+                  className="w-full pos-gradient text-primary-foreground rounded-xl py-3.5 font-semibold shadow-lg disabled:opacity-50">
                   Bayar Sekarang
                 </button>
               </div>
@@ -199,7 +273,9 @@ const POSPage = () => {
             <div className="p-5" id="pos-receipt">
               <div className="text-center mb-3">
                 <p className="font-bold text-foreground text-lg">{user?.storeName}</p>
-                <p className="text-xs text-muted-foreground">{lastTransaction.date.toLocaleString('id-ID')}</p>
+                {user?.storeAddress && <p className="text-xs text-muted-foreground">{user.storeAddress}</p>}
+                {user?.storePhone && <p className="text-xs text-muted-foreground">📞 {user.storePhone}</p>}
+                <p className="text-xs text-muted-foreground mt-1">{lastTransaction.date.toLocaleString('id-ID')}</p>
                 <p className="text-xs text-muted-foreground">No: {lastTransaction.id}</p>
               </div>
               <div className="border-t border-dashed border-border my-3" />
@@ -215,6 +291,18 @@ const POSPage = () => {
                 <span className="text-xl font-bold text-primary">Rp {lastTransaction.total.toLocaleString('id-ID')}</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1 text-right capitalize">Bayar: {lastTransaction.payment}</p>
+              {lastTransaction.payment === 'cash' && (
+                <>
+                  <div className="flex justify-between text-xs mt-1">
+                    <span className="text-muted-foreground">Tunai</span>
+                    <span className="text-foreground">Rp {lastTransaction.cashReceived.toLocaleString('id-ID')}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mt-1">
+                    <span className="font-semibold text-success">Kembalian</span>
+                    <span className="font-bold text-success">Rp {lastTransaction.change.toLocaleString('id-ID')}</span>
+                  </div>
+                </>
+              )}
               <div className="border-t border-dashed border-border my-3" />
               <p className="text-center text-xs text-muted-foreground">Terima kasih atas kunjungan Anda! 🙏</p>
             </div>
@@ -232,6 +320,9 @@ const POSPage = () => {
           </div>
         </div>
       )}
+
+      {/* Barcode Scanner */}
+      {showScanner && <BarcodeScanner onScan={handleBarcodeScan} onClose={() => setShowScanner(false)} />}
     </div>
   );
 };

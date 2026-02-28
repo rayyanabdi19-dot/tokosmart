@@ -15,15 +15,21 @@ const ReceiptModal = () => {
     const lines = [
       `🧾 *STRUK PEMBAYARAN*`,
       `📍 ${user?.storeName}`,
+      user?.storeAddress ? `📫 ${user.storeAddress}` : '',
+      user?.storePhone ? `📞 ${user.storePhone}` : '',
       `📅 ${new Date(tx.timestamp).toLocaleString('id-ID')}`,
       `━━━━━━━━━━━━━━━━━━`,
       `${tx.description}`,
       `━━━━━━━━━━━━━━━━━━`,
       `*TOTAL: Rp ${tx.amount.toLocaleString('id-ID')}*`,
       `💳 Bayar: ${tx.paymentMethod}`,
+      ...(tx.cashReceived ? [
+        `💵 Tunai: Rp ${tx.cashReceived.toLocaleString('id-ID')}`,
+        `💰 Kembalian: Rp ${(tx.changeAmount || 0).toLocaleString('id-ID')}`,
+      ] : []),
       ``,
       `Terima kasih! 🙏`,
-    ];
+    ].filter(Boolean);
     const text = encodeURIComponent(lines.join('\n'));
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
@@ -42,7 +48,9 @@ const ReceiptModal = () => {
         <div className="p-5">
           <div className="text-center mb-3">
             <p className="font-bold text-foreground">{user?.storeName}</p>
-            <p className="text-xs text-muted-foreground">{new Date(tx.timestamp).toLocaleString('id-ID')}</p>
+            {user?.storeAddress && <p className="text-xs text-muted-foreground">{user.storeAddress}</p>}
+            {user?.storePhone && <p className="text-xs text-muted-foreground">📞 {user.storePhone}</p>}
+            <p className="text-xs text-muted-foreground mt-1">{new Date(tx.timestamp).toLocaleString('id-ID')}</p>
           </div>
 
           <div className="border-t border-dashed border-border pt-3 space-y-2">
@@ -69,6 +77,18 @@ const ReceiptModal = () => {
               <span className="text-sm font-medium text-foreground">Total</span>
               <span className="text-xl font-bold text-primary">Rp {tx.amount.toLocaleString('id-ID')}</span>
             </div>
+            {tx.cashReceived && (
+              <>
+                <div className="flex justify-between text-xs mt-1">
+                  <span className="text-muted-foreground">Tunai</span>
+                  <span className="text-foreground">Rp {tx.cashReceived.toLocaleString('id-ID')}</span>
+                </div>
+                <div className="flex justify-between text-sm mt-1">
+                  <span className="font-semibold text-success">Kembalian</span>
+                  <span className="font-bold text-success">Rp {(tx.changeAmount || 0).toLocaleString('id-ID')}</span>
+                </div>
+              </>
+            )}
           </div>
 
           <p className="text-center text-xs text-muted-foreground pt-3">Terima kasih! 🙏</p>

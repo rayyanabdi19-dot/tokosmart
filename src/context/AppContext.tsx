@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useAuth, Profile } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
-export type Page = 'open-store' | 'dashboard' | 'cashbook' | 'report' | 'account' | 'admin-settings' | 'faq' | 'pos' | 'staff-management' | 'printer-settings' | 'notification-settings' | 'data-backup' | 'product-management' | 'sales-report';
+export type Page = 'open-store' | 'dashboard' | 'cashbook' | 'report' | 'account' | 'admin-settings' | 'faq' | 'pos' | 'staff-management' | 'printer-settings' | 'notification-settings' | 'data-backup' | 'product-management' | 'sales-report' | 'about-developer';
 
 export interface Product {
   id: string;
@@ -10,6 +12,7 @@ export interface Product {
   category: string;
   image: string;
   stock: number;
+  barcode?: string;
 }
 
 export interface CartItem {
@@ -26,6 +29,8 @@ export interface Transaction {
   timestamp: Date;
   paymentMethod: 'cash' | 'card' | 'e-wallet';
   items?: CartItem[];
+  cashReceived?: number;
+  changeAmount?: number;
 }
 
 export interface User {
@@ -33,6 +38,8 @@ export interface User {
   email: string;
   role: 'cashier' | 'admin';
   storeName: string;
+  storeAddress?: string;
+  storePhone?: string;
 }
 
 export interface ShiftData {
@@ -82,6 +89,8 @@ interface AppContextType {
   removeFromCart: (productId: string) => void;
   updateCartQty: (productId: string, qty: number) => void;
   clearCart: () => void;
+  signOut: () => void;
+  authLoading: boolean;
 }
 
 const defaultProducts: Product[] = [
@@ -102,13 +111,11 @@ const defaultProducts: Product[] = [
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
+  const { authUser, profile, loading: authLoading, signOut: authSignOut } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState<Page>('open-store');
   const [shift, setShift] = useState<ShiftData>({
-    isOpen: false,
-    openedAt: null,
-    openingBalance: 0,
-    transactions: [],
+    isOpen: false, openedAt: null, openingBalance: 0, transactions: [],
   });
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [showTopupModal, setShowTopupModal] = useState(false);
@@ -118,6 +125,54 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [products, setProducts] = useState<Product[]>(defaultProducts);
   const [cart, setCart] = useState<CartItem[]>([]);
+
+  // Sync auth user to app user
+  useEffect(() => {
+    if (profile) {
+      setUser({
+        name: profile.name,
+        email: profile.email || '',
+        role: (profile.role as 'admin' | 'cashier') || 'admin',
+        storeName: profile.store_name || 'Toko Saya',
+        storeAddress: profile.store_address || '',
+        storePhone: profile.store_phone || '',
+      });
+      // Load products from DB
+      loadProducts();
+    } else if (!authLoading) {
+      setUser(null);
+    }
+  }, [profile, authLoading]);
+
+  const loadProducts = async () => {
+    if (!authUser) return;
+    const { data } = await supabase.from('products').select('*').eq('user_id', authUser.id);
+    if (data && data.length > 0) {
+      setProducts(data.map(p => ({
+        id: p.id, name: p.name, price: Number(p.price), cost: Number(p.cost),
+        category: p.category || 'Umum', image: p.image || '📦',
+        stock: p.stock || 0, barcode: p.barcode || undefined,
+      })));
+    } else {
+      // Seed default products for new users
+      setProducts(defaultProducts);
+      if (authUser) {
+        const inserts = defaultProducts.map(p => ({
+          user_id: authUser.id, name: p.name, price: p.price, cost: p.cost,
+          category: p.category, image: p.image, stock: p.stock,
+        }));
+        await supabase.from('products').insert(inserts);
+        loadProducts(); // reload to get DB IDs
+      }
+    }
+  };
+
+  const signOut = async () => {
+    await authSignOut();
+    setUser(null);
+    setCurrentPage('open-store');
+    setShift({ isOpen: false, openedAt: null, openingBalance: 0, transactions: [] });
+  };
 
   const openShift = (balance: number) => {
     setShift({ isOpen: true, openedAt: new Date(), openingBalance: balance, transactions: [] });
@@ -131,10 +186,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     addNotification('Shift closed successfully!', 'info');
   };
 
-  const addTransaction = (tx: Omit<Transaction, 'id' | 'timestamp'>) => {
+  const addTransaction = async (tx: Omit<Transaction, 'id' | 'timestamp'>) => {
     const newTx: Transaction = { ...tx, id: Date.now().toString(), timestamp: new Date() };
     setShift(prev => ({ ...prev, transactions: [newTx, ...prev.transactions] }));
     addNotification(`${tx.type === 'sale' ? 'Sale' : tx.type === 'topup' ? 'Top-up' : tx.type === 'pos-sale' ? 'POS Sale' : 'Expense'} of Rp ${tx.amount.toLocaleString()} recorded`, 'success');
+
+    // Save to DB
+    if (authUser) {
+      await supabase.from('transactions').insert({
+        user_id: authUser.id, type: tx.type, amount: tx.amount,
+        description: tx.description, category: tx.category,
+        payment_method: tx.paymentMethod,
+        items: tx.items ? JSON.parse(JSON.stringify(tx.items)) : null,
+        cash_received: tx.cashReceived || null,
+        change_amount: tx.changeAmount || null,
+      });
+    }
   };
 
   const addNotification = (message: string, type: Notification['type']) => {
@@ -147,19 +214,38 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
-  const addProduct = (p: Omit<Product, 'id'>) => {
-    setProducts(prev => [...prev, { ...p, id: Date.now().toString() }]);
+  const addProduct = async (p: Omit<Product, 'id'>) => {
+    const tempId = Date.now().toString();
+    setProducts(prev => [...prev, { ...p, id: tempId }]);
     addNotification('Product added!', 'success');
+    if (authUser) {
+      const { data } = await supabase.from('products').insert({
+        user_id: authUser.id, name: p.name, price: p.price, cost: p.cost,
+        category: p.category, image: p.image, stock: p.stock, barcode: p.barcode || null,
+      }).select().single();
+      if (data) {
+        setProducts(prev => prev.map(pr => pr.id === tempId ? { ...pr, id: data.id } : pr));
+      }
+    }
   };
 
-  const updateProduct = (p: Product) => {
+  const updateProduct = async (p: Product) => {
     setProducts(prev => prev.map(pr => pr.id === p.id ? p : pr));
     addNotification('Product updated!', 'success');
+    if (authUser) {
+      await supabase.from('products').update({
+        name: p.name, price: p.price, cost: p.cost,
+        category: p.category, image: p.image, stock: p.stock, barcode: p.barcode || null,
+      }).eq('id', p.id);
+    }
   };
 
-  const deleteProduct = (id: string) => {
+  const deleteProduct = async (id: string) => {
     setProducts(prev => prev.filter(p => p.id !== id));
     addNotification('Product deleted!', 'info');
+    if (authUser) {
+      await supabase.from('products').delete().eq('id', id);
+    }
   };
 
   const addToCart = (product: Product) => {
@@ -193,6 +279,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       notifications, addNotification, removeNotification,
       products, setProducts, addProduct, updateProduct, deleteProduct,
       cart, setCart, addToCart, removeFromCart, updateCartQty, clearCart,
+      signOut, authLoading,
     }}>
       {children}
     </AppContext.Provider>

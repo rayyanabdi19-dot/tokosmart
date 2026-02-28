@@ -1,9 +1,9 @@
 import React from 'react';
 import { useApp } from '@/context/AppContext';
-import { User, Mail, Shield, Store, LogOut, Settings, HelpCircle } from 'lucide-react';
+import { User, Mail, Shield, Store, LogOut, Settings, HelpCircle, Phone, Info, Code } from 'lucide-react';
 
 const AccountPage = () => {
-  const { user, setUser, setCurrentPage } = useApp();
+  const { user, setCurrentPage, signOut } = useApp();
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -33,10 +33,17 @@ const AccountPage = () => {
           <button onClick={() => setCurrentPage('faq')} className="w-full">
             <MenuItem icon={<HelpCircle className="w-5 h-5" />} label="FAQ & Help" subtitle="Get support" />
           </button>
+          <a href="https://wa.me/6282186371356" target="_blank" rel="noopener noreferrer" className="block w-full">
+            <MenuItem icon={<Phone className="w-5 h-5" />} label="Hubungi Helpdesk" subtitle="WhatsApp: 0821-8637-1356" />
+          </a>
+          <MenuItem icon={<Info className="w-5 h-5" />} label="Versi Aplikasi" subtitle="KasirPro v1.0.0" />
+          <button onClick={() => setCurrentPage('about-developer')} className="w-full">
+            <MenuItem icon={<Code className="w-5 h-5" />} label="Tentang Developer" subtitle="Info pengembang" />
+          </button>
         </div>
 
         <button
-          onClick={() => setUser(null)}
+          onClick={signOut}
           className="w-full mt-8 flex items-center justify-center gap-2 py-3 rounded-xl border border-destructive/20 text-destructive font-medium text-sm hover:bg-destructive/5 transition-colors"
         >
           <LogOut className="w-4 h-4" />
