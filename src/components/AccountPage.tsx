@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/hooks/useAuth';
-import { User, Mail, Shield, Store, LogOut, Settings, HelpCircle, Phone, Info, Code, Edit3, Save, X, MapPin } from 'lucide-react';
+import { User, Mail, Shield, Store, LogOut, Settings, HelpCircle, Phone, Info, Code, Edit3, Save, X, MapPin, Moon, Sun } from 'lucide-react';
 
 const AccountPage = () => {
   const { user, setUser, setCurrentPage, signOut } = useApp();
@@ -11,6 +11,22 @@ const AccountPage = () => {
   const [storeAddress, setStoreAddress] = useState(user?.storeAddress || '');
   const [storePhone, setStorePhone] = useState(user?.storePhone || '');
   const [saving, setSaving] = useState(false);
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
+
+  const toggleDark = () => {
+    const next = !dark;
+    setDark(next);
+    document.documentElement.classList.toggle('dark', next);
+    localStorage.setItem('theme', next ? 'dark' : 'light');
+  };
+
+  useEffect(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'dark') {
+      document.documentElement.classList.add('dark');
+      setDark(true);
+    }
+  }, []);
 
   const handleSave = async () => {
     if (!storeName.trim()) return;
@@ -112,6 +128,9 @@ const AccountPage = () => {
           <a href="https://wa.me/6282186371356" target="_blank" rel="noopener noreferrer" className="block w-full">
             <MenuItem icon={<Phone className="w-5 h-5" />} label="Hubungi Helpdesk" subtitle="WhatsApp: 0821-8637-1356" />
           </a>
+          <button onClick={toggleDark} className="w-full">
+            <MenuItem icon={dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />} label={dark ? 'Light Mode' : 'Dark Mode'} subtitle={dark ? 'Ganti ke tema terang' : 'Ganti ke tema gelap'} />
+          </button>
           <MenuItem icon={<Info className="w-5 h-5" />} label="Versi Aplikasi" subtitle="KasirPro v1.0.0" />
           <button onClick={() => setCurrentPage('about-developer')} className="w-full">
             <MenuItem icon={<Code className="w-5 h-5" />} label="Tentang Developer" subtitle="Info pengembang" />
