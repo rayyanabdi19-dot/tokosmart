@@ -133,7 +133,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         name: profile.name,
         email: profile.email || '',
         role: (profile.role as 'admin' | 'cashier') || 'admin',
-        storeName: profile.store_name || 'Toko Saya',
+        storeName: profile.store_name || 'Profil Toko',
         storeAddress: profile.store_address || '',
         storePhone: profile.store_phone || '',
       });

@@ -25,7 +25,7 @@ const DashboardPage = () => {
               <Store className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-primary-foreground text-lg font-bold">{user?.storeName || 'Toko Saya'}</h1>
+              <h1 className="text-primary-foreground text-lg font-bold">{user?.storeName || 'Profil Toko'}</h1>
               {user?.storeAddress && <p className="text-primary-foreground/60 text-[10px]">{user.storeAddress}</p>}
             </div>
           </div>
