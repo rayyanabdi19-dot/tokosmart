@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp, Product } from '@/context/AppContext';
 import { ArrowLeft, Plus, Edit2, Trash2, X, Package, Camera, Barcode } from 'lucide-react';
+import BarcodeScanner from './BarcodeScanner';
 
 const emojiOptions = ['📱', '📶', '⚡', '📒', '🖊️', '✏️', '🧹', '💳', '🎮', '🛒', '🧴', '🍜', '☕', '🧊', '📦', '🎁'];
 const categoryOptions = ['Pulsa', 'Paket Data', 'Token', 'ATK', 'E-Wallet', 'Voucher', 'Makanan', 'Minuman', 'Lainnya'];
@@ -17,6 +18,7 @@ const ProductManagementPage = () => {
   const [stock, setStock] = useState('99');
   const [barcode, setBarcode] = useState('');
   const [filter, setFilter] = useState('All');
+  const [showScanner, setShowScanner] = useState(false);
 
   const openNew = () => {
     setEditProduct(null);
@@ -135,7 +137,12 @@ const ProductManagementPage = () => {
                 <label className="text-xs font-medium text-muted-foreground mb-1 block flex items-center gap-1">
                   <Barcode className="w-3.5 h-3.5" /> Barcode (opsional)
                 </label>
-                <input value={barcode} onChange={e => setBarcode(e.target.value)} placeholder="Scan atau ketik barcode" className="w-full px-4 py-3 rounded-xl border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+                <div className="flex gap-2">
+                  <input value={barcode} onChange={e => setBarcode(e.target.value)} placeholder="Scan atau ketik barcode" className="flex-1 px-4 py-3 rounded-xl border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+                  <button type="button" onClick={() => setShowScanner(true)} className="px-3 py-3 rounded-xl bg-primary text-primary-foreground flex items-center gap-1.5 text-xs font-medium">
+                    <Camera className="w-4 h-4" /> Scan
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -144,6 +151,12 @@ const ProductManagementPage = () => {
             </button>
           </div>
         </div>
+      )}
+      {showScanner && (
+        <BarcodeScanner
+          onScan={(code) => { setBarcode(code); setShowScanner(false); }}
+          onClose={() => setShowScanner(false)}
+        />
       )}
     </div>
   );
