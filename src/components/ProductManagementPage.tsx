@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp, Product } from '@/context/AppContext';
-import { ArrowLeft, Plus, Edit2, Trash2, X, Package, Camera } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Trash2, X, Package, Camera, Barcode } from 'lucide-react';
 
 const emojiOptions = ['📱', '📶', '⚡', '📒', '🖊️', '✏️', '🧹', '💳', '🎮', '🛒', '🧴', '🍜', '☕', '🧊', '📦', '🎁'];
 const categoryOptions = ['Pulsa', 'Paket Data', 'Token', 'ATK', 'E-Wallet', 'Voucher', 'Makanan', 'Minuman', 'Lainnya'];
@@ -15,17 +15,18 @@ const ProductManagementPage = () => {
   const [category, setCategory] = useState(categoryOptions[0]);
   const [image, setImage] = useState(emojiOptions[0]);
   const [stock, setStock] = useState('99');
+  const [barcode, setBarcode] = useState('');
   const [filter, setFilter] = useState('All');
 
   const openNew = () => {
     setEditProduct(null);
-    setName(''); setPrice(''); setCost(''); setCategory(categoryOptions[0]); setImage(emojiOptions[0]); setStock('99');
+    setName(''); setPrice(''); setCost(''); setCategory(categoryOptions[0]); setImage(emojiOptions[0]); setStock('99'); setBarcode('');
     setShowForm(true);
   };
 
   const openEdit = (p: Product) => {
     setEditProduct(p);
-    setName(p.name); setPrice(p.price.toString()); setCost(p.cost.toString()); setCategory(p.category); setImage(p.image); setStock(p.stock.toString());
+    setName(p.name); setPrice(p.price.toString()); setCost(p.cost.toString()); setCategory(p.category); setImage(p.image); setStock(p.stock.toString()); setBarcode(p.barcode || '');
     setShowForm(true);
   };
 
@@ -35,10 +36,11 @@ const ProductManagementPage = () => {
     const stockNum = parseInt(stock) || 0;
     if (!name || priceNum <= 0) return;
 
+    const barcodeVal = barcode.trim() || undefined;
     if (editProduct) {
-      updateProduct({ ...editProduct, name, price: priceNum, cost: costNum, category, image, stock: stockNum });
+      updateProduct({ ...editProduct, name, price: priceNum, cost: costNum, category, image, stock: stockNum, barcode: barcodeVal });
     } else {
-      addProduct({ name, price: priceNum, cost: costNum, category, image, stock: stockNum });
+      addProduct({ name, price: priceNum, cost: costNum, category, image, stock: stockNum, barcode: barcodeVal });
     }
     setShowForm(false);
   };
@@ -128,6 +130,12 @@ const ProductManagementPage = () => {
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">Stok</label>
                 <input type="number" value={stock} onChange={e => setStock(e.target.value)} placeholder="0" className="w-full px-4 py-3 rounded-xl border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block flex items-center gap-1">
+                  <Barcode className="w-3.5 h-3.5" /> Barcode (opsional)
+                </label>
+                <input value={barcode} onChange={e => setBarcode(e.target.value)} placeholder="Scan atau ketik barcode" className="w-full px-4 py-3 rounded-xl border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
               </div>
             </div>
 
