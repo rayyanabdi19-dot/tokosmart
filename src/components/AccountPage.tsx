@@ -1,9 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { User, Mail, Shield, Store, LogOut, Settings, HelpCircle, Phone, Info, Code } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { User, Mail, Shield, Store, LogOut, Settings, HelpCircle, Phone, Info, Code, Edit3, Save, X, MapPin } from 'lucide-react';
 
 const AccountPage = () => {
-  const { user, setCurrentPage, signOut } = useApp();
+  const { user, setUser, setCurrentPage, signOut } = useApp();
+  const { updateProfile } = useAuth();
+  const [editing, setEditing] = useState(false);
+  const [storeName, setStoreName] = useState(user?.storeName || '');
+  const [storeAddress, setStoreAddress] = useState(user?.storeAddress || '');
+  const [storePhone, setStorePhone] = useState(user?.storePhone || '');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!storeName.trim()) return;
+    setSaving(true);
+    const result = await updateProfile({
+      store_name: storeName.trim(),
+      store_address: storeAddress.trim(),
+      store_phone: storePhone.trim(),
+    });
+    if (!result?.error && user) {
+      setUser({ ...user, storeName: storeName.trim(), storeAddress: storeAddress.trim(), storePhone: storePhone.trim() });
+    }
+    setSaving(false);
+    setEditing(false);
+  };
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -21,8 +43,62 @@ const AccountPage = () => {
           </div>
         </div>
 
+        {/* Store Profile Section */}
+        <div className="bg-card rounded-2xl p-4 border border-border mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Store className="w-4 h-4 text-primary" />
+              <p className="text-sm font-semibold text-foreground">Profil Toko</p>
+            </div>
+            {!editing ? (
+              <button onClick={() => setEditing(true)} className="flex items-center gap-1 text-xs text-primary font-medium">
+                <Edit3 className="w-3.5 h-3.5" /> Edit
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button onClick={() => setEditing(false)} className="p-1.5 rounded-lg bg-muted text-muted-foreground"><X className="w-3.5 h-3.5" /></button>
+                <button onClick={handleSave} disabled={saving} className="p-1.5 rounded-lg bg-primary text-primary-foreground"><Save className="w-3.5 h-3.5" /></button>
+              </div>
+            )}
+          </div>
+
+          {editing ? (
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Nama Toko</label>
+                <input value={storeName} onChange={e => setStoreName(e.target.value)} maxLength={100}
+                  className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Alamat</label>
+                <input value={storeAddress} onChange={e => setStoreAddress(e.target.value)} maxLength={200}
+                  className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">No. Telepon</label>
+                <input value={storePhone} onChange={e => setStorePhone(e.target.value)} maxLength={20}
+                  className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Store className="w-4 h-4 text-muted-foreground" />
+                <p className="text-sm text-foreground">{user?.storeName || 'Belum diatur'}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-muted-foreground" />
+                <p className="text-sm text-foreground">{user?.storeAddress || 'Belum diatur'}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-muted-foreground" />
+                <p className="text-sm text-foreground">{user?.storePhone || 'Belum diatur'}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="space-y-2">
-          <MenuItem icon={<Store className="w-5 h-5" />} label="Store Info" subtitle={user?.storeName || ''} />
           <MenuItem icon={<Mail className="w-5 h-5" />} label="Email" subtitle={user?.email || ''} />
           <MenuItem icon={<Shield className="w-5 h-5" />} label="Security" subtitle="Change password" />
           {user?.role === 'admin' && (
