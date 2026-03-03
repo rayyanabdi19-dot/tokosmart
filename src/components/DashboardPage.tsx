@@ -1,9 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
-import { Plus, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Clock, CreditCard, Megaphone, ExternalLink, ShoppingBag, Store } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Plus, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Clock, CreditCard, Megaphone, ExternalLink, ShoppingBag, Store, AlertTriangle } from 'lucide-react';
 
 const DashboardPage = () => {
   const { shift, setShowTransactionModal, setShowTopupModal, setSelectedTransaction, setShowReceiptModal, setCurrentPage, user } = useApp();
+  const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null);
+
+  useEffect(() => {
+    const checkLicense = async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) return;
+      const { data } = await supabase.from('licenses').select('*').eq('user_id', authUser.id).single();
+      if (data && (data as any).license_type === 'trial') {
+        const expires = new Date((data as any).expires_at);
+        const days = Math.max(0, Math.ceil((expires.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+        if (days <= 7) setTrialDaysLeft(days);
+      }
+    };
+    checkLicense();
+  }, []);
 
   const totalSales = shift.transactions.filter(t => t.type === 'sale' || t.type === 'pos-sale').reduce((s, t) => s + t.amount, 0);
   const totalExpenses = shift.transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
@@ -43,6 +59,21 @@ const DashboardPage = () => {
           <p className="text-primary-foreground text-3xl font-bold">Rp {currentBalance.toLocaleString('id-ID')}</p>
         </div>
       </div>
+
+      {/* Trial Warning */}
+      {trialDaysLeft !== null && (
+        <div className="px-6 mt-3">
+          <button onClick={() => setCurrentPage('license')} className="w-full flex items-center gap-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl p-3.5">
+            <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+            <div className="flex-1 text-left">
+              <p className="text-sm font-semibold text-foreground">
+                {trialDaysLeft === 0 ? 'Trial telah berakhir!' : `Trial berakhir dalam ${trialDaysLeft} hari`}
+              </p>
+              <p className="text-xs text-muted-foreground">Ketuk untuk lihat detail lisensi</p>
+            </div>
+          </button>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="px-6 -mt-4">
