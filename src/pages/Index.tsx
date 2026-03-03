@@ -16,6 +16,8 @@ import NotificationSettingsPage from '@/components/NotificationSettingsPage';
 import DataBackupPage from '@/components/DataBackupPage';
 import AboutDeveloperPage from '@/components/AboutDeveloperPage';
 import LicensePage from '@/components/LicensePage';
+import UpgradePage from '@/components/UpgradePage';
+import ExpiredOverlay from '@/components/ExpiredOverlay';
 import BottomNav from '@/components/BottomNav';
 import TransactionModal from '@/components/TransactionModal';
 import TopupModal from '@/components/TopupModal';
@@ -23,10 +25,11 @@ import ReceiptModal from '@/components/ReceiptModal';
 import CloseShiftModal from '@/components/CloseShiftModal';
 import NotificationToast from '@/components/NotificationToast';
 
-const noBottomNavPages = ['open-store', 'admin-settings', 'faq', 'pos', 'staff-management', 'printer-settings', 'notification-settings', 'data-backup', 'product-management', 'sales-report', 'about-developer', 'license'];
+const noBottomNavPages = ['open-store', 'admin-settings', 'faq', 'pos', 'staff-management', 'printer-settings', 'notification-settings', 'data-backup', 'product-management', 'sales-report', 'about-developer', 'license', 'upgrade'];
+const allowedWhenExpired = ['account', 'license', 'upgrade', 'about-developer', 'faq'];
 
 const AppContent = () => {
-  const { user, currentPage, authLoading } = useApp();
+  const { user, currentPage, authLoading, trialExpired } = useApp();
 
   if (authLoading) {
     return (
@@ -59,6 +62,7 @@ const AppContent = () => {
       {currentPage === 'data-backup' && <DataBackupPage />}
       {currentPage === 'about-developer' && <AboutDeveloperPage />}
       {currentPage === 'license' && <LicensePage />}
+      {currentPage === 'upgrade' && <UpgradePage />}
 
       {!noBottomNavPages.includes(currentPage) && <BottomNav />}
 
@@ -67,6 +71,7 @@ const AppContent = () => {
       <ReceiptModal />
       <CloseShiftModal />
       <NotificationToast />
+      {trialExpired && !allowedWhenExpired.includes(currentPage) && <ExpiredOverlay />}
     </div>
   );
 };
