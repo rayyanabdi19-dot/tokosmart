@@ -132,6 +132,9 @@ const AccountPage = () => {
             <MenuItem icon={dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />} label={dark ? 'Light Mode' : 'Dark Mode'} subtitle={dark ? 'Ganti ke tema terang' : 'Ganti ke tema gelap'} />
           </button>
           <MenuItem icon={<Info className="w-5 h-5" />} label="Versi Aplikasi" subtitle="KasirPro v1.0.0" />
+          <button onClick={() => setCurrentPage('license')} className="w-full">
+            <MenuItem icon={<Shield className="w-5 h-5" />} label="Lisensi" subtitle="Trial 30 hari" />
+          </button>
           <button onClick={() => setCurrentPage('about-developer')} className="w-full">
             <MenuItem icon={<Code className="w-5 h-5" />} label="Tentang Developer" subtitle="Info pengembang" />
           </button>
