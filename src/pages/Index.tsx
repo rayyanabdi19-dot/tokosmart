@@ -15,6 +15,7 @@ import PrinterSettingsPage from '@/components/PrinterSettingsPage';
 import NotificationSettingsPage from '@/components/NotificationSettingsPage';
 import DataBackupPage from '@/components/DataBackupPage';
 import AboutDeveloperPage from '@/components/AboutDeveloperPage';
+import LicensePage from '@/components/LicensePage';
 import BottomNav from '@/components/BottomNav';
 import TransactionModal from '@/components/TransactionModal';
 import TopupModal from '@/components/TopupModal';
@@ -22,7 +23,7 @@ import ReceiptModal from '@/components/ReceiptModal';
 import CloseShiftModal from '@/components/CloseShiftModal';
 import NotificationToast from '@/components/NotificationToast';
 
-const noBottomNavPages = ['open-store', 'admin-settings', 'faq', 'pos', 'staff-management', 'printer-settings', 'notification-settings', 'data-backup', 'product-management', 'sales-report', 'about-developer'];
+const noBottomNavPages = ['open-store', 'admin-settings', 'faq', 'pos', 'staff-management', 'printer-settings', 'notification-settings', 'data-backup', 'product-management', 'sales-report', 'about-developer', 'license'];
 
 const AppContent = () => {
   const { user, currentPage, authLoading } = useApp();
@@ -57,6 +58,7 @@ const AppContent = () => {
       {currentPage === 'notification-settings' && <NotificationSettingsPage />}
       {currentPage === 'data-backup' && <DataBackupPage />}
       {currentPage === 'about-developer' && <AboutDeveloperPage />}
+      {currentPage === 'license' && <LicensePage />}
 
       {!noBottomNavPages.includes(currentPage) && <BottomNav />}
 
