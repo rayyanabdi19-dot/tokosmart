@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useAuth, Profile } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
-export type Page = 'open-store' | 'dashboard' | 'cashbook' | 'report' | 'account' | 'admin-settings' | 'faq' | 'pos' | 'staff-management' | 'printer-settings' | 'notification-settings' | 'data-backup' | 'product-management' | 'sales-report' | 'about-developer' | 'license';
+export type Page = 'open-store' | 'dashboard' | 'cashbook' | 'report' | 'account' | 'admin-settings' | 'faq' | 'pos' | 'staff-management' | 'printer-settings' | 'notification-settings' | 'data-backup' | 'product-management' | 'sales-report' | 'about-developer' | 'license' | 'upgrade';
 
 export interface Product {
   id: string;
@@ -91,6 +91,7 @@ interface AppContextType {
   clearCart: () => void;
   signOut: () => void;
   authLoading: boolean;
+  trialExpired: boolean;
 }
 
 const defaultProducts: Product[] = [
@@ -125,6 +126,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [products, setProducts] = useState<Product[]>(defaultProducts);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [trialExpired, setTrialExpired] = useState(false);
+
+  // Check license status
+  useEffect(() => {
+    if (!authUser) return;
+    const checkLicense = async () => {
+      const { data } = await supabase.from('licenses').select('*').eq('user_id', authUser.id).single();
+      if (data) {
+        const expires = new Date(data.expires_at);
+        const isExpired = expires.getTime() < Date.now() && data.license_type === 'trial';
+        setTrialExpired(isExpired);
+      }
+    };
+    checkLicense();
+  }, [authUser]);
 
   // Sync auth user to app user
   useEffect(() => {
@@ -279,7 +295,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       notifications, addNotification, removeNotification,
       products, setProducts, addProduct, updateProduct, deleteProduct,
       cart, setCart, addToCart, removeFromCart, updateCartQty, clearCart,
-      signOut, authLoading,
+      signOut, authLoading, trialExpired,
     }}>
       {children}
     </AppContext.Provider>

@@ -125,14 +125,12 @@ const LicensePage = () => {
             </div>
 
             {(isExpired || isTrial) && (
-              <a
-                href="https://wa.me/6282186371356?text=Halo%2C%20saya%20ingin%20upgrade%20lisensi%20KasirPro"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => setCurrentPage('upgrade')}
                 className="block w-full mt-6 py-3.5 rounded-xl pos-gradient text-center text-primary-foreground font-semibold text-sm"
               >
                 {isExpired ? 'Perpanjang Lisensi' : 'Upgrade ke Premium'}
-              </a>
+              </button>
             )}
           </>
         )}
