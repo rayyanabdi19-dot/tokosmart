@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      license_codes: {
+        Row: {
+          code: string
+          created_at: string
+          duration_days: number
+          id: string
+          is_used: boolean
+          license_type: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          duration_days?: number
+          id?: string
+          is_used?: boolean
+          license_type?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          duration_days?: number
+          id?: string
+          is_used?: boolean
+          license_type?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: []
+      }
       licenses: {
         Row: {
           created_at: string

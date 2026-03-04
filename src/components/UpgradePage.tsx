@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { ArrowLeft, Check, Crown, Zap, Star } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { ArrowLeft, Check, Crown, Zap, Star, KeyRound, Loader2 } from 'lucide-react';
 
 const plans = [
   {
@@ -35,12 +36,42 @@ const plans = [
 ];
 
 const UpgradePage = () => {
-  const { setCurrentPage } = useApp();
+  const { setCurrentPage, addNotification } = useApp();
+  const [licenseCode, setLicenseCode] = useState('');
+  const [activating, setActivating] = useState(false);
+  const [showCodeInput, setShowCodeInput] = useState(false);
 
   const handleSelect = (planId: string) => {
     const plan = plans.find(p => p.id === planId);
     const msg = `Halo, saya ingin upgrade ke paket ${plan?.name} (Rp ${plan?.price.toLocaleString('id-ID')}${plan?.period}) KasirPro`;
     window.open(`https://wa.me/6282186371356?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  const handleActivateCode = async () => {
+    const code = licenseCode.trim();
+    if (!code || code.length < 4) {
+      addNotification('Masukkan kode lisensi yang valid', 'error');
+      return;
+    }
+    setActivating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('activate-license', {
+        body: { code },
+      });
+      if (error) throw error;
+      if (data?.error) {
+        addNotification(data.error, 'error');
+      } else {
+        addNotification('Lisensi premium berhasil diaktifkan! 🎉', 'success');
+        setLicenseCode('');
+        setShowCodeInput(false);
+        setTimeout(() => setCurrentPage('license'), 1500);
+      }
+    } catch (err: any) {
+      addNotification(err.message || 'Gagal mengaktifkan kode', 'error');
+    } finally {
+      setActivating(false);
+    }
   };
 
   return (
@@ -53,7 +84,57 @@ const UpgradePage = () => {
           <h1 className="text-xl font-bold text-foreground">Upgrade Premium</h1>
         </div>
 
-        <div className="text-center mb-8">
+        {/* Activate License Code Section */}
+        <div className="rounded-2xl border border-primary/30 bg-primary/5 p-5 mb-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <KeyRound className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-foreground">Punya Kode Lisensi?</p>
+              <p className="text-xs text-muted-foreground">Aktifkan langsung tanpa WhatsApp</p>
+            </div>
+            {!showCodeInput && (
+              <button
+                onClick={() => setShowCodeInput(true)}
+                className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold"
+              >
+                Aktifkan
+              </button>
+            )}
+          </div>
+
+          {showCodeInput && (
+            <div className="mt-3 space-y-3">
+              <input
+                type="text"
+                value={licenseCode}
+                onChange={e => setLicenseCode(e.target.value.toUpperCase())}
+                placeholder="Masukkan kode lisensi"
+                maxLength={50}
+                className="w-full px-4 py-3 rounded-xl border border-border bg-card text-foreground text-center font-mono text-lg tracking-widest placeholder:text-muted-foreground placeholder:tracking-normal placeholder:font-sans placeholder:text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setShowCodeInput(false); setLicenseCode(''); }}
+                  className="flex-1 py-3 rounded-xl bg-muted text-foreground font-semibold text-sm"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleActivateCode}
+                  disabled={activating || licenseCode.trim().length < 4}
+                  className="flex-1 py-3 rounded-xl pos-gradient text-primary-foreground font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {activating ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {activating ? 'Memproses...' : 'Aktivasi'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="text-center mb-6">
           <div className="w-16 h-16 rounded-2xl pos-gradient flex items-center justify-center mx-auto mb-3">
             <Crown className="w-8 h-8 text-primary-foreground" />
           </div>
@@ -122,7 +203,7 @@ const UpgradePage = () => {
         </div>
 
         <p className="text-xs text-center text-muted-foreground mt-6">
-          Pembayaran diproses via WhatsApp. Lisensi diaktifkan dalam 1x24 jam.
+          Pembayaran diproses via WhatsApp. Atau gunakan kode lisensi di atas.
         </p>
       </div>
     </div>
