@@ -17,6 +17,7 @@ import DataBackupPage from '@/components/DataBackupPage';
 import AboutDeveloperPage from '@/components/AboutDeveloperPage';
 import LicensePage from '@/components/LicensePage';
 import UpgradePage from '@/components/UpgradePage';
+import AdminLicenseCodesPage from '@/components/AdminLicenseCodesPage';
 import ExpiredOverlay from '@/components/ExpiredOverlay';
 import BottomNav from '@/components/BottomNav';
 import TransactionModal from '@/components/TransactionModal';
@@ -25,7 +26,7 @@ import ReceiptModal from '@/components/ReceiptModal';
 import CloseShiftModal from '@/components/CloseShiftModal';
 import NotificationToast from '@/components/NotificationToast';
 
-const noBottomNavPages = ['open-store', 'admin-settings', 'faq', 'pos', 'staff-management', 'printer-settings', 'notification-settings', 'data-backup', 'product-management', 'sales-report', 'about-developer', 'license', 'upgrade'];
+const noBottomNavPages = ['open-store', 'admin-settings', 'faq', 'pos', 'staff-management', 'printer-settings', 'notification-settings', 'data-backup', 'product-management', 'sales-report', 'about-developer', 'license', 'upgrade', 'admin-license-codes'];
 const allowedWhenExpired = ['account', 'license', 'upgrade', 'about-developer', 'faq'];
 
 const AppContent = () => {
@@ -63,6 +64,7 @@ const AppContent = () => {
       {currentPage === 'about-developer' && <AboutDeveloperPage />}
       {currentPage === 'license' && <LicensePage />}
       {currentPage === 'upgrade' && <UpgradePage />}
+      {currentPage === 'admin-license-codes' && <AdminLicenseCodesPage />}
 
       {!noBottomNavPages.includes(currentPage) && <BottomNav />}
 
