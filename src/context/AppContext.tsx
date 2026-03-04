@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useAuth, Profile } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
-export type Page = 'open-store' | 'dashboard' | 'cashbook' | 'report' | 'account' | 'admin-settings' | 'faq' | 'pos' | 'staff-management' | 'printer-settings' | 'notification-settings' | 'data-backup' | 'product-management' | 'sales-report' | 'about-developer' | 'license' | 'upgrade';
+export type Page = 'open-store' | 'dashboard' | 'cashbook' | 'report' | 'account' | 'admin-settings' | 'faq' | 'pos' | 'staff-management' | 'printer-settings' | 'notification-settings' | 'data-backup' | 'product-management' | 'sales-report' | 'about-developer' | 'license' | 'upgrade' | 'admin-license-codes';
 
 export interface Product {
   id: string;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '@/context/AppContext';
-import { ArrowLeft, Users, Printer, Bell, Database, Package, Tag } from 'lucide-react';
+import { ArrowLeft, Users, Printer, Bell, Database, Package, KeyRound } from 'lucide-react';
 
 const AdminSettingsPage = () => {
   const { setCurrentPage } = useApp();
@@ -8,6 +8,7 @@ const AdminSettingsPage = () => {
   const items = [
     { icon: <Users className="w-5 h-5" />, label: 'Staff Management', desc: 'Add and manage cashiers', page: 'staff-management' as const },
     { icon: <Package className="w-5 h-5" />, label: 'Kelola Produk', desc: 'Atur produk, foto & stok', page: 'product-management' as const },
+    { icon: <KeyRound className="w-5 h-5" />, label: 'Kode Lisensi', desc: 'Generate & kelola kode premium', page: 'admin-license-codes' as const },
     { icon: <Printer className="w-5 h-5" />, label: 'Receipt Printer', desc: 'Configure printer settings', page: 'printer-settings' as const },
     { icon: <Bell className="w-5 h-5" />, label: 'Notifications', desc: 'Alert preferences', page: 'notification-settings' as const },
     { icon: <Database className="w-5 h-5" />, label: 'Data & Backup', desc: 'Export and restore data', page: 'data-backup' as const },
