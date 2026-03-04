@@ -7,7 +7,7 @@ const plans = [
   {
     id: 'monthly',
     name: 'Bulanan',
-    price: 49000,
+    price: 25999,
     period: '/bulan',
     features: ['Semua fitur POS', 'Manajemen produk', 'Laporan penjualan', 'Buku kas', 'Struk digital'],
     icon: Zap,
