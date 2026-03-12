@@ -302,9 +302,9 @@ const AdminLicenseCodesPage = () => {
                       Kirim
                     </button>
                   </div>
-                )
-                </div>
+                )}
               </div>
+            </div>
             ))}
           </div>
         )}
