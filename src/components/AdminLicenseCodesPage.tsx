@@ -107,6 +107,19 @@ const AdminLicenseCodesPage = () => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const handleWhatsAppSend = (code: string, licenseType: string) => {
+    if (!whatsappNumber.trim()) {
+      setSendingCodeId(null);
+      addNotification('Masukkan nomor WhatsApp terlebih dahulu', 'error');
+      return;
+    }
+    const number = whatsappNumber.replace(/\D/g, '').replace(/^0/, '62');
+    const message = `Halo! Berikut kode lisensi premium *${typeLabel[licenseType] || licenseType}* untuk TokoSmart:\n\n🔑 *${code}*\n\nCara aktivasi:\n1. Buka aplikasi TokoSmart\n2. Masuk ke Akun > Lisensi > Upgrade Premium\n3. Masukkan kode di atas\n\nTerima kasih! 🎉`;
+    window.open(`https://wa.me/${number}?text=${encodeURIComponent(message)}`, '_blank');
+    setSendingCodeId(null);
+    setWhatsappNumber('');
+  };
+
   const usedCount = codes.filter(c => c.is_used).length;
   const availableCount = codes.filter(c => !c.is_used).length;
 
