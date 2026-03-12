@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Plus, Trash2, Copy, KeyRound, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Copy, KeyRound, Loader2, CheckCircle, XCircle, Send } from 'lucide-react';
 
 interface LicenseCode {
   id: string;
