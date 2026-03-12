@@ -36,6 +36,8 @@ const AdminLicenseCodesPage = () => {
   const [genType, setGenType] = useState('monthly');
   const [genCount, setGenCount] = useState(1);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [sendingCodeId, setSendingCodeId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCodes();
