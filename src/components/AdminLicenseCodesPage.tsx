@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Plus, Trash2, Copy, KeyRound, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Copy, KeyRound, Loader2, CheckCircle, XCircle, Send } from 'lucide-react';
 
 interface LicenseCode {
   id: string;
@@ -36,6 +36,8 @@ const AdminLicenseCodesPage = () => {
   const [genType, setGenType] = useState('monthly');
   const [genCount, setGenCount] = useState(1);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [sendingCodeId, setSendingCodeId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCodes();
@@ -103,6 +105,19 @@ const AdminLicenseCodesPage = () => {
     setCopiedId(id);
     addNotification('Kode disalin!', 'success');
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleWhatsAppSend = (code: string, licenseType: string) => {
+    if (!whatsappNumber.trim()) {
+      setSendingCodeId(null);
+      addNotification('Masukkan nomor WhatsApp terlebih dahulu', 'error');
+      return;
+    }
+    const number = whatsappNumber.replace(/\D/g, '').replace(/^0/, '62');
+    const message = `Halo! Berikut kode lisensi premium *${typeLabel[licenseType] || licenseType}* untuk TokoSmart:\n\n🔑 *${code}*\n\nCara aktivasi:\n1. Buka aplikasi TokoSmart\n2. Masuk ke Akun > Lisensi > Upgrade Premium\n3. Masukkan kode di atas\n\nTerima kasih! 🎉`;
+    window.open(`https://wa.me/${number}?text=${encodeURIComponent(message)}`, '_blank');
+    setSendingCodeId(null);
+    setWhatsappNumber('');
   };
 
   const usedCount = codes.filter(c => c.is_used).length;
@@ -241,6 +256,14 @@ const AdminLicenseCodesPage = () => {
                   <div className="flex gap-1">
                     {!code.is_used && (
                       <button
+                        onClick={() => setSendingCodeId(sendingCodeId === code.id ? null : code.id)}
+                        className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center"
+                      >
+                        <Send className="w-4 h-4 text-emerald-600" />
+                      </button>
+                    )}
+                    {!code.is_used && (
+                      <button
                         onClick={() => handleCopy(code.code, code.id)}
                         className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center"
                       >
@@ -261,6 +284,25 @@ const AdminLicenseCodesPage = () => {
                     )}
                   </div>
                 </div>
+                {/* WhatsApp send panel */}
+                {sendingCodeId === code.id && (
+                  <div className="mt-3 pt-3 border-t border-border flex gap-2">
+                    <input
+                      type="tel"
+                      placeholder="08xxxxxxxxxx"
+                      value={whatsappNumber}
+                      onChange={e => setWhatsappNumber(e.target.value)}
+                      className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                    />
+                    <button
+                      onClick={() => handleWhatsAppSend(code.code, code.license_type)}
+                      className="px-4 py-2 rounded-lg bg-emerald-500 text-white text-sm font-semibold flex items-center gap-1.5"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      Kirim
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
