@@ -304,7 +304,6 @@ const AdminLicenseCodesPage = () => {
                   </div>
                 )}
               </div>
-            </div>
             ))}
           </div>
         )}
