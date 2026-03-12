@@ -256,6 +256,14 @@ const AdminLicenseCodesPage = () => {
                   <div className="flex gap-1">
                     {!code.is_used && (
                       <button
+                        onClick={() => setSendingCodeId(sendingCodeId === code.id ? null : code.id)}
+                        className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center"
+                      >
+                        <Send className="w-4 h-4 text-emerald-600" />
+                      </button>
+                    )}
+                    {!code.is_used && (
+                      <button
                         onClick={() => handleCopy(code.code, code.id)}
                         className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center"
                       >
@@ -275,6 +283,26 @@ const AdminLicenseCodesPage = () => {
                       </button>
                     )}
                   </div>
+                </div>
+                {/* WhatsApp send panel */}
+                {sendingCodeId === code.id && (
+                  <div className="mt-3 pt-3 border-t border-border flex gap-2">
+                    <input
+                      type="tel"
+                      placeholder="08xxxxxxxxxx"
+                      value={whatsappNumber}
+                      onChange={e => setWhatsappNumber(e.target.value)}
+                      className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                    />
+                    <button
+                      onClick={() => handleWhatsAppSend(code.code, code.license_type)}
+                      className="px-4 py-2 rounded-lg bg-emerald-500 text-white text-sm font-semibold flex items-center gap-1.5"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      Kirim
+                    </button>
+                  </div>
+                )
                 </div>
               </div>
             ))}
