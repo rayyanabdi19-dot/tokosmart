@@ -72,6 +72,9 @@ const DashboardPage = () => {
                 {user?.storeAddress && <p className="text-primary-foreground/60 text-[10px]">{user.storeAddress}</p>}
               </div>
             </div>
+            <button onClick={toggleDark} className="w-9 h-9 rounded-xl bg-primary-foreground/20 flex items-center justify-center">
+              {dark ? <Sun className="w-4 h-4 text-primary-foreground" /> : <Moon className="w-4 h-4 text-primary-foreground" />}
+            </button>
           </div>
           <p className="text-primary-foreground/70 text-xs mb-4 ml-[52px]">Welcome, {user?.name}</p>
 
