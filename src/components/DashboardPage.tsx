@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Clock, CreditCard, Megaphone, ExternalLink, ShoppingBag, Store, AlertTriangle, Calendar } from 'lucide-react';
+import { Plus, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Clock, CreditCard, Megaphone, ExternalLink, ShoppingBag, Store, AlertTriangle, Calendar, Moon, Sun } from 'lucide-react';
 
 const DashboardPage = () => {
   const { shift, setShowTransactionModal, setShowTopupModal, setSelectedTransaction, setShowReceiptModal, setCurrentPage, user } = useApp();
   const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
+
+  const toggleDark = () => {
+    const next = !dark;
+    setDark(next);
+    document.documentElement.classList.toggle('dark', next);
+    localStorage.setItem('theme', next ? 'dark' : 'light');
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -64,6 +72,9 @@ const DashboardPage = () => {
                 {user?.storeAddress && <p className="text-primary-foreground/60 text-[10px]">{user.storeAddress}</p>}
               </div>
             </div>
+            <button onClick={toggleDark} className="w-9 h-9 rounded-xl bg-primary-foreground/20 flex items-center justify-center">
+              {dark ? <Sun className="w-4 h-4 text-primary-foreground" /> : <Moon className="w-4 h-4 text-primary-foreground" />}
+            </button>
           </div>
           <p className="text-primary-foreground/70 text-xs mb-4 ml-[52px]">Welcome, {user?.name}</p>
 
@@ -109,7 +120,7 @@ const DashboardPage = () => {
       )}
 
       {/* Stats */}
-      <div className="px-6 -mt-4">
+      <div className="px-6 mt-4">
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-card rounded-2xl p-4 border border-border text-center">
             <div className="w-8 h-8 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-2">
