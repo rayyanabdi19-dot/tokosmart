@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Clock, CreditCard, Megaphone, ExternalLink, ShoppingBag, Store, AlertTriangle } from 'lucide-react';
+import { Plus, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Clock, CreditCard, Megaphone, ExternalLink, ShoppingBag, Store, AlertTriangle, Calendar } from 'lucide-react';
 
 const DashboardPage = () => {
   const { shift, setShowTransactionModal, setShowTopupModal, setSelectedTransaction, setShowReceiptModal, setCurrentPage, user } = useApp();
   const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const checkLicense = async () => {
@@ -31,32 +37,59 @@ const DashboardPage = () => {
     setShowReceiptModal(true);
   };
 
+  const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Header with Store Info */}
-      <div className="pos-gradient px-6 pt-12 pb-8 rounded-b-3xl">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary-foreground/20 flex items-center justify-center">
-              <Store className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-primary-foreground text-lg font-bold">{user?.storeName || 'Profil Toko'}</h1>
-              {user?.storeAddress && <p className="text-primary-foreground/60 text-[10px]">{user.storeAddress}</p>}
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 bg-primary-foreground/20 rounded-full px-3 py-1.5">
-            <Clock className="w-3.5 h-3.5 text-primary-foreground" />
-            <span className="text-primary-foreground text-xs font-medium">
-              {shift.openedAt ? new Date(shift.openedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-            </span>
-          </div>
-        </div>
-        <p className="text-primary-foreground/70 text-xs mb-4 ml-[52px]">Welcome, {user?.name}</p>
+      {/* Header with Store Info & Motif */}
+      <div className="pos-gradient px-6 pt-12 pb-8 rounded-b-3xl relative overflow-hidden">
+        {/* Decorative pattern overlay */}
+        <div className="absolute inset-0 opacity-[0.07]" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }} />
+        {/* Decorative circles */}
+        <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-primary-foreground/5" />
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-primary-foreground/5" />
+        <div className="absolute top-8 right-20 w-16 h-16 rounded-full bg-primary-foreground/5" />
 
-        <div className="bg-primary-foreground/10 rounded-2xl p-5 backdrop-blur-sm">
-          <p className="text-primary-foreground/70 text-xs mb-1">Current Balance</p>
-          <p className="text-primary-foreground text-3xl font-bold">Rp {currentBalance.toLocaleString('id-ID')}</p>
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary-foreground/20 flex items-center justify-center">
+                <Store className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-primary-foreground text-lg font-bold">{user?.storeName || 'Profil Toko'}</h1>
+                {user?.storeAddress && <p className="text-primary-foreground/60 text-[10px]">{user.storeAddress}</p>}
+              </div>
+            </div>
+          </div>
+          <p className="text-primary-foreground/70 text-xs mb-4 ml-[52px]">Welcome, {user?.name}</p>
+
+          {/* Live Clock & Calendar */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-1 flex items-center gap-2.5 bg-primary-foreground/10 rounded-xl px-4 py-2.5 backdrop-blur-sm">
+              <Clock className="w-4 h-4 text-primary-foreground/80" />
+              <div>
+                <p className="text-primary-foreground text-lg font-bold tracking-wider font-mono leading-none">
+                  {currentTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </p>
+              </div>
+            </div>
+            <div className="flex-1 flex items-center gap-2.5 bg-primary-foreground/10 rounded-xl px-4 py-2.5 backdrop-blur-sm">
+              <Calendar className="w-4 h-4 text-primary-foreground/80" />
+              <div>
+                <p className="text-primary-foreground text-xs font-semibold leading-none">{dayNames[currentTime.getDay()]}</p>
+                <p className="text-primary-foreground/70 text-[10px] mt-0.5">{currentTime.getDate()} {monthNames[currentTime.getMonth()]} {currentTime.getFullYear()}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-primary-foreground/10 rounded-2xl p-5 backdrop-blur-sm">
+            <p className="text-primary-foreground/70 text-xs mb-1">Current Balance</p>
+            <p className="text-primary-foreground text-3xl font-bold">Rp {currentBalance.toLocaleString('id-ID')}</p>
+          </div>
         </div>
       </div>
 
