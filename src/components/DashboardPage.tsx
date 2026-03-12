@@ -120,7 +120,7 @@ const DashboardPage = () => {
       )}
 
       {/* Stats */}
-      <div className="px-6 -mt-4">
+      <div className="px-6 mt-4">
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-card rounded-2xl p-4 border border-border text-center">
             <div className="w-8 h-8 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-2">
